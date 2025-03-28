@@ -4,6 +4,7 @@ import { Heart, Info, Star } from 'lucide-react';
 import { FaGamepad } from 'react-icons/fa';
 import { usePokemonStore } from '../store/pokemonStore';
 import { typeColors } from '../utils/typeColors';
+import { QuizModal } from './QuizModal';
 
 interface PokemonCardProps {
   pokemon: Pokemon;
@@ -18,6 +19,7 @@ interface PokemonStoreState {
 export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [showQuiz, setShowQuiz] = useState(false);
   const { theme, toggleFavorite, favorites } = usePokemonStore() as PokemonStoreState;
   
   const isDark = theme === 'dark';
@@ -151,6 +153,7 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           <span className="font-medium">Info</span>
         </button>
         <button
+          onClick={() => setShowQuiz(true)}
           className={`flex items-center justify-center py-3 ${
             isDark 
               ? 'bg-gray-700 hover:bg-gray-600 text-purple-300' 
@@ -202,6 +205,14 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
             ))}
           </div>
         </div>
+      )}
+      
+      {/* Quiz Modal */}
+      {showQuiz && (
+        <QuizModal 
+          pokemon={pokemon} 
+          onClose={() => setShowQuiz(false)} 
+        />
       )}
     </div>
   );
