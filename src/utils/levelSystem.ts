@@ -1,16 +1,34 @@
 // Level thresholds define the minimum points required for each level
-export const LEVEL_THRESHOLDS = [
-  0,      // Level 1
-  100,    // Level 2
-  250,    // Level 3
-  450,    // Level 4
-  700,    // Level 5
-  1000,   // Level 6
-  1350,   // Level 7
-  1750,   // Level 8
-  2200,   // Level 9
-  2700    // Level 10
-];
+export const LEVEL_THRESHOLDS: number[] = [];
+
+// Generate 100 level thresholds with progressive scaling
+// Level 1: 0 points
+// Level 2: 20 points
+// Each subsequent level requires more points than the previous
+for (let i = 0; i < 100; i++) {
+  if (i === 0) {
+    LEVEL_THRESHOLDS.push(0); // Level 1 starts at 0 points
+  } else if (i === 1) {
+    LEVEL_THRESHOLDS.push(20); // Level 2 requires 20 points
+  } else {
+    // Progressive scaling formula:
+    // For early levels (2-20): Linear growth
+    // For mid levels (21-50): Moderate growth
+    // For high levels (51-100): Steeper growth
+    const previousThreshold = LEVEL_THRESHOLDS[i - 1];
+    let increment;
+    
+    if (i < 20) {
+      increment = 20 + (i * 2); // Linear growth: 20, 22, 24, 26...
+    } else if (i < 50) {
+      increment = 60 + (i * 3); // Moderate growth
+    } else {
+      increment = 150 + (i * 5); // Steeper growth for higher levels
+    }
+    
+    LEVEL_THRESHOLDS.push(previousThreshold + increment);
+  }
+}
 
 // Maximum level in the game
 export const MAX_LEVEL = LEVEL_THRESHOLDS.length;
@@ -63,19 +81,43 @@ export const calculateStreakPoints = (streakDays: number): number => {
   return Math.min(MAX_STREAK_POINTS, (streakDays + 1) * 5);
 };
 
-// Level titles
-export const LEVEL_TITLES = [
-  "Pokémon Novice",       // Level 1
-  "Pokémon Beginner",     // Level 2
-  "Pokémon Enthusiast",   // Level 3
-  "Pokémon Collector",    // Level 4
-  "Pokémon Researcher",   // Level 5
-  "Pokémon Ace Trainer",  // Level 6
-  "Pokémon Expert",       // Level 7
-  "Pokémon Master",       // Level 8
-  "Pokémon Champion",     // Level 9
-  "Pokémon Legend"        // Level 10
-];
+// Points per correct quiz answer
+export const POINTS_PER_CORRECT_ANSWER = 5;
+
+// Level titles - now with 100 levels
+export const LEVEL_TITLES: string[] = [];
+
+// Generate level titles
+const generateLevelTitles = () => {
+  const prefixes = [
+    "Novice", "Beginner", "Enthusiast", "Collector", "Researcher", 
+    "Ace", "Expert", "Master", "Champion", "Elite"
+  ];
+  
+  const ranks = [
+    "", "I", "II", "III", "IV", "V", 
+    "VI", "VII", "VIII", "IX", "X"
+  ];
+  
+  // Generate 100 level titles
+  for (let i = 0; i < 100; i++) {
+    const prefixIndex = Math.floor(i / 10);
+    const rankIndex = i % 10;
+    
+    const prefix = prefixes[Math.min(prefixIndex, prefixes.length - 1)];
+    const rank = ranks[rankIndex];
+    
+    if (i === 99) {
+      // Special title for max level
+      LEVEL_TITLES.push("Pokémon Master");
+    } else {
+      LEVEL_TITLES.push(`Pokémon ${prefix} ${rank}`.trim());
+    }
+  }
+};
+
+// Initialize level titles
+generateLevelTitles();
 
 // Get level title
 export const getLevelTitle = (level: number): string => {

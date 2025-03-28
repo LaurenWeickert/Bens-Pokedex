@@ -26,6 +26,14 @@ interface PokemonStore {
   completedQuizzes: number[];
   markQuizCompleted: (pokemonId: number) => void;
   isQuizCompleted: (pokemonId: number) => boolean;
+  // Track quiz scores
+  quizScores: Record<number, number>;
+  updateQuizScore: (pokemonId: number, score: number) => void;
+  getQuizScore: (pokemonId: number) => number;
+  // Track answered questions to avoid duplicate points
+  answeredQuestions: Record<string, boolean>;
+  markQuestionAnswered: (questionId: string, correct: boolean) => void;
+  isQuestionAnsweredCorrectly: (questionId: string) => boolean;
   // Level up animation
   showLevelUpAnimation: boolean;
   setShowLevelUpAnimation: (show: boolean) => void;
@@ -140,6 +148,34 @@ export const usePokemonStore = create<PokemonStore>(
         })),
       isQuizCompleted: (pokemonId: number) => {
         return get().completedQuizzes.includes(pokemonId);
+      },
+      // Track quiz scores
+      quizScores: {},
+      updateQuizScore: (pokemonId: number, score: number) =>
+        set((state) => {
+          const currentScore = state.quizScores[pokemonId] || 0;
+          // Only update if the new score is better
+          if (score > currentScore) {
+            return {
+              quizScores: { ...state.quizScores, [pokemonId]: score }
+            };
+          }
+          return state;
+        }),
+      getQuizScore: (pokemonId: number) => {
+        return get().quizScores[pokemonId] || 0;
+      },
+      // Track answered questions to avoid duplicate points
+      answeredQuestions: {},
+      markQuestionAnswered: (questionId: string, correct: boolean) =>
+        set((state) => ({
+          answeredQuestions: { 
+            ...state.answeredQuestions, 
+            [questionId]: correct 
+          }
+        })),
+      isQuestionAnsweredCorrectly: (questionId: string) => {
+        return get().answeredQuestions[questionId] === true;
       },
       // Level up animation
       showLevelUpAnimation: false,

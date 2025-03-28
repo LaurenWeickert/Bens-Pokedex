@@ -1,14 +1,14 @@
 import React, { useEffect } from 'react';
 import { Tab } from '@headlessui/react';
-import { Star, Calendar } from 'lucide-react';
-import { FaTrophy, FaFire, FaSearch, FaMedal } from 'react-icons/fa';
+import { FaTrophy, FaFire, FaSearch, FaMedal, FaStar, FaBolt } from 'react-icons/fa';
 import { usePokemonStore } from '../store/pokemonStore';
 import { 
   calculateLevel, 
   progressToNextLevel, 
   pointsToNextLevel, 
   LEVEL_THRESHOLDS,
-  getLevelTitle
+  getLevelTitle,
+  MAX_LEVEL
 } from '../utils/levelSystem';
 
 interface PokemonStoreState {
@@ -42,6 +42,9 @@ export const UserProgress: React.FC = () => {
   const progress = progressToNextLevel(userPoints);
   const pointsNeeded = pointsToNextLevel(userPoints);
   const levelTitle = getLevelTitle(level);
+
+  // Calculate overall progress towards max level (level 100)
+  const overallProgressPercent = (level / MAX_LEVEL) * 100;
 
   return (
     <div className={`mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -105,51 +108,46 @@ export const UserProgress: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Points */}
               <div className={`flex items-center gap-3 p-4 rounded-xl ${
-                isDark ? 'bg-gradient-to-br from-yellow-800 to-yellow-900' : 'bg-gradient-to-br from-yellow-100 to-yellow-200'
-              } shadow-md hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300`}>
+                isDark ? 'bg-gradient-to-br from-yellow-900 to-yellow-800' : 'bg-gradient-to-br from-yellow-100 to-yellow-200'
+              } shadow-md hover:shadow-lg transition-shadow`}>
                 <div className={`p-3 rounded-full ${
-                  isDark ? 'bg-yellow-600' : 'bg-yellow-300'
+                  isDark ? 'bg-yellow-700' : 'bg-yellow-300'
                 } shadow-inner`}>
-                  <Star className={`w-6 h-6 ${isDark ? 'text-yellow-300' : 'text-yellow-600'}`} />
+                  <FaStar className={`w-6 h-6 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`} />
                 </div>
                 <div>
-                  <h3 className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Points</h3>
-                  <p className={`text-2xl font-extrabold ${isDark ? 'text-yellow-300' : 'text-yellow-600'}`}>{userPoints}</p>
+                  <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-700'}`}>Points</h3>
+                  <p className={`text-2xl font-extrabold ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>{userPoints}</p>
+                </div>
+              </div>
+
+              {/* Badges */}
+              <div className={`flex items-center gap-3 p-4 rounded-xl ${
+                isDark ? 'bg-gradient-to-br from-purple-900 to-purple-800' : 'bg-gradient-to-br from-purple-100 to-purple-200'
+              } shadow-md hover:shadow-lg transition-shadow`}>
+                <div className={`p-3 rounded-full ${
+                  isDark ? 'bg-purple-700' : 'bg-purple-300'
+                } shadow-inner`}>
+                  <FaMedal className={`w-6 h-6 ${isDark ? 'text-purple-300' : 'text-purple-700'}`} />
+                </div>
+                <div>
+                  <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-700'}`}>Badges</h3>
+                  <p className={`text-2xl font-extrabold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>{badges.length}</p>
                 </div>
               </div>
 
               {/* Daily Streak */}
               <div className={`flex items-center gap-3 p-4 rounded-xl ${
-                isDark ? 'bg-gradient-to-br from-red-800 to-red-900' : 'bg-gradient-to-br from-red-100 to-red-200'
-              } shadow-md hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300`}>
+                isDark ? 'bg-gradient-to-br from-red-900 to-red-800' : 'bg-gradient-to-br from-red-100 to-red-200'
+              } shadow-md hover:shadow-lg transition-shadow`}>
                 <div className={`p-3 rounded-full ${
-                  isDark ? 'bg-red-600' : 'bg-red-300'
+                  isDark ? 'bg-red-700' : 'bg-red-300'
                 } shadow-inner`}>
-                  <FaFire className={`w-6 h-6 ${isDark ? 'text-red-300' : 'text-red-600'}`} />
+                  <FaBolt className={`w-6 h-6 ${isDark ? 'text-red-300' : 'text-red-700'}`} />
                 </div>
                 <div>
-                  <h3 className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Daily Streak</h3>
-                  <p className={`text-2xl font-extrabold ${isDark ? 'text-red-300' : 'text-red-600'}`}>
-                    {dailyStreak} days
-                    {dailyStreak >= 7 && <span className="ml-2">🔥</span>}
-                  </p>
-                </div>
-              </div>
-
-              {/* Discovered Pokémon */}
-              <div className={`flex items-center gap-3 p-4 rounded-xl ${
-                isDark ? 'bg-gradient-to-br from-green-800 to-green-900' : 'bg-gradient-to-br from-green-100 to-green-200'
-              } shadow-md hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300`}>
-                <div className={`p-3 rounded-full ${
-                  isDark ? 'bg-green-600' : 'bg-green-300'
-                } shadow-inner`}>
-                  <FaSearch className={`w-6 h-6 ${isDark ? 'text-green-300' : 'text-green-600'}`} />
-                </div>
-                <div>
-                  <h3 className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Discovered</h3>
-                  <p className={`text-2xl font-extrabold ${isDark ? 'text-green-300' : 'text-green-600'}`}>
-                    {discoveredPokemon.length} / 151
-                  </p>
+                  <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-700'}`}>Daily Streak</h3>
+                  <p className={`text-2xl font-extrabold ${isDark ? 'text-red-300' : 'text-red-700'}`}>{dailyStreak}</p>
                 </div>
               </div>
             </div>
@@ -200,6 +198,34 @@ export const UserProgress: React.FC = () => {
               </div>
             </div>
 
+            {/* Overall Progress Bar */}
+            <div className="mt-8">
+              <div className="flex justify-between mb-2">
+                <span className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>Level 1</span>
+                <span className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>Level 100</span>
+              </div>
+              <div className={`w-full h-3 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded-full shadow-inner overflow-hidden`}>
+                <div 
+                  className="h-3 rounded-full bg-gradient-to-r from-green-500 to-teal-500 relative"
+                  style={{ width: `${overallProgressPercent}%` }}
+                >
+                  <div className="absolute inset-0 overflow-hidden">
+                    <div className="w-full h-full bg-white/20" 
+                         style={{ 
+                           backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                           backgroundSize: '200% 100%',
+                           animation: 'shimmer 2s infinite linear'
+                         }} />
+                  </div>
+                </div>
+              </div>
+              <div className="mt-1 text-center">
+                <span className={`text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-700'}`}>
+                  Level {level} of 100 ({Math.round(overallProgressPercent)}% complete)
+                </span>
+              </div>
+            </div>
+
             {/* Daily Check-in */}
             <div className={`mt-6 p-4 rounded-xl ${
               isDark ? 'bg-gradient-to-r from-blue-900 to-indigo-900' : 'bg-gradient-to-r from-blue-100 to-indigo-100'
@@ -210,7 +236,7 @@ export const UserProgress: React.FC = () => {
                 <div className={`p-3 rounded-full ${
                   isDark ? 'bg-blue-700' : 'bg-blue-300'
                 } shadow-inner`}>
-                  <Calendar className={`w-6 h-6 ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />
+                  <FaFire className={`w-6 h-6 ${isDark ? 'text-blue-300' : 'text-blue-700'}`} />
                 </div>
                 <div>
                   <h3 className={`font-bold ${isDark ? 'text-gray-100' : 'text-gray-700'}`}>Daily Check-in</h3>
