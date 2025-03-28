@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { calculateStreakPoints, MAX_STREAK_POINTS, calculateLevel } from '../utils/levelSystem';
 
 interface PokemonStore {
   searchTerm: string;
@@ -21,6 +22,14 @@ interface PokemonStore {
   updateDailyStreak: () => void;
   quizAnswers: Record<string, boolean>;
   setQuizAnswer: (questionId: string, correct: boolean) => void;
+  // Track completed quizzes
+  completedQuizzes: number[];
+  markQuizCompleted: (pokemonId: number) => void;
+  isQuizCompleted: (pokemonId: number) => boolean;
+  // Level up animation
+  showLevelUpAnimation: boolean;
+  setShowLevelUpAnimation: (show: boolean) => void;
+  previousLevel: number;
   // Theme preference
   theme: 'light' | 'dark';
   toggleTheme: () => void;
@@ -28,7 +37,7 @@ interface PokemonStore {
 
 export const usePokemonStore = create<PokemonStore>(
   persist(
-    (set) => ({
+    (set, get) => ({
       searchTerm: '',
       setSearchTerm: (term: string) => set({ searchTerm: term }),
       selectedTypes: [],
@@ -84,17 +93,34 @@ export const usePokemonStore = create<PokemonStore>(
             .toISOString()
             .split('T')[0];
 
+          // Get current level before adding points
+          const currentLevel = calculateLevel(state.userPoints);
+
           if (state.lastLoginDate === yesterday) {
+            // Calculate streak points with the cap
+            const streakPoints = calculateStreakPoints(state.dailyStreak);
+            
+            const newPoints = state.userPoints + streakPoints;
+            const newLevel = calculateLevel(newPoints);
+            
             return {
               dailyStreak: state.dailyStreak + 1,
               lastLoginDate: today,
-              userPoints: state.userPoints + (state.dailyStreak + 1) * 5, // Bonus points for streak
+              userPoints: newPoints,
+              showLevelUpAnimation: newLevel > currentLevel,
+              previousLevel: currentLevel
             };
           } else if (state.lastLoginDate !== today) {
+            // First day or streak broken, award 5 points
+            const newPoints = state.userPoints + 5;
+            const newLevel = calculateLevel(newPoints);
+            
             return {
               dailyStreak: 1,
               lastLoginDate: today,
-              userPoints: state.userPoints + 5,
+              userPoints: newPoints,
+              showLevelUpAnimation: newLevel > currentLevel,
+              previousLevel: currentLevel
             };
           }
           return state;
@@ -103,13 +129,28 @@ export const usePokemonStore = create<PokemonStore>(
       setQuizAnswer: (questionId: string, correct: boolean) =>
         set((state) => ({
           quizAnswers: { ...state.quizAnswers, [questionId]: correct },
-          userPoints: correct ? state.userPoints + 20 : state.userPoints,
         })),
+      // Track completed quizzes
+      completedQuizzes: [],
+      markQuizCompleted: (pokemonId: number) =>
+        set((state) => ({
+          completedQuizzes: state.completedQuizzes.includes(pokemonId)
+            ? state.completedQuizzes
+            : [...state.completedQuizzes, pokemonId],
+        })),
+      isQuizCompleted: (pokemonId: number) => {
+        return get().completedQuizzes.includes(pokemonId);
+      },
+      // Level up animation
+      showLevelUpAnimation: false,
+      setShowLevelUpAnimation: (show: boolean) => 
+        set({ showLevelUpAnimation: show }),
+      previousLevel: 1,
       // Theme preference
       theme: 'light',
       toggleTheme: () =>
         set((state) => ({
-          theme: state.theme === 'light' ? 'dark' : 'light'
+          theme: state.theme === 'light' ? 'dark' : 'light',
         })),
     }),
     {

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { usePokemonStore } from '../store/pokemonStore';
 import ConfettiGenerator from 'confetti-js';
 import { Pokemon, PokemonSpecies, EvolutionChain } from '../types/pokemon';
+import { typeWeaknesses } from '../utils/typeWeaknesses';
+import { calculateLevel } from '../utils/levelSystem';
 
 interface QuizModalProps {
   onClose: () => void;
@@ -15,31 +17,23 @@ interface PokemonStoreState {
   theme: 'light' | 'dark';
   addPoints: (points: number) => void;
   addBadge: (badge: string) => void;
+  isQuizCompleted: (pokemonId: number) => boolean;
+  markQuizCompleted: (pokemonId: number) => void;
+  userPoints: number;
+  setShowLevelUpAnimation: (show: boolean) => void;
+  previousLevel: number;
 }
 
-const typeWeaknesses = {
-  normal: ['fighting'],
-  fire: ['water', 'ground', 'rock'],
-  water: ['electric', 'grass'],
-  electric: ['ground'],
-  grass: ['fire', 'ice', 'poison', 'flying', 'bug'],
-  ice: ['fire', 'fighting', 'rock', 'steel'],
-  fighting: ['flying', 'psychic', 'fairy'],
-  poison: ['ground', 'psychic'],
-  ground: ['water', 'grass', 'ice'],
-  flying: ['electric', 'ice', 'rock'],
-  psychic: ['bug', 'ghost', 'dark'],
-  bug: ['fire', 'flying', 'rock'],
-  rock: ['water', 'grass', 'fighting', 'ground', 'steel'],
-  ghost: ['ghost', 'dark'],
-  dragon: ['ice', 'dragon', 'fairy'],
-  dark: ['fighting', 'bug', 'fairy'],
-  steel: ['fire', 'fighting', 'ground'],
-  fairy: ['poison', 'steel']
-};
-
 export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
-  const { addPoints, addBadge } = usePokemonStore() as PokemonStoreState;
+  const { 
+    addPoints, 
+    addBadge, 
+    isQuizCompleted, 
+    markQuizCompleted,
+    userPoints,
+    setShowLevelUpAnimation,
+    previousLevel
+  } = usePokemonStore() as PokemonStoreState;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
@@ -47,6 +41,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [evolutionChain, setEvolutionChain] = useState<EvolutionChain | null>(null);
   const [species, setSpecies] = useState<PokemonSpecies | null>(null);
+  const [quizAlreadyCompleted, setQuizAlreadyCompleted] = useState(false);
 
   useEffect(() => {
     const fetchEvolutionChain = async () => {
@@ -64,6 +59,11 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
 
     fetchEvolutionChain();
   }, [pokemon]);
+
+  useEffect(() => {
+    // Check if this quiz has already been completed
+    setQuizAlreadyCompleted(isQuizCompleted(pokemon.id));
+  }, [pokemon.id, isQuizCompleted]);
 
   useEffect(() => {
     if (showResults && score > 3) {
@@ -158,7 +158,6 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
     
     if (isCorrect) {
       setScore(prev => prev + 1);
-      addPoints(20);
     }
 
     setAnswers(prev => [...prev, isCorrect]);
@@ -169,33 +168,47 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
         setCurrentQuestion(prev => prev + 1);
       } else {
         setShowResults(true);
-        if (score >= 3) {
+        // Only award points and badges if this is the first time completing the quiz
+        if (score >= 3 && !quizAlreadyCompleted) {
+          // Store current level before adding points
+          const currentLevel = calculateLevel(userPoints);
+          
+          // Award points
+          addPoints(20);
+          
+          // Check if level increased
+          const newLevel = calculateLevel(userPoints + 20);
+          if (newLevel > currentLevel) {
+            setShowLevelUpAnimation(true);
+          }
+          
           addBadge(`${pokemon.name} Master`);
+          markQuizCompleted(pokemon.id);
         }
       }
     }, 1000);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-hidden">
       <canvas id="confetti-canvas" className="fixed inset-0 pointer-events-none z-50"></canvas>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-white rounded-xl shadow-xl max-w-lg w-full relative"
+        className="bg-white rounded-xl shadow-xl max-w-lg w-full relative max-h-[90vh] flex flex-col"
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors"
+          className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors z-10"
         >
           <X className="w-6 h-6" />
         </button>
 
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1 scrollbar-thin">
           {!showResults ? (
             <>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6 sticky top-0 bg-white pt-2 pb-4 z-[5]">
                 <h2 className="text-2xl font-bold">
                   Question {currentQuestion + 1} of {questions.length}
                 </h2>
@@ -219,7 +232,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
                 </div>
               </div>
               <p className="text-lg mb-4">{questions[currentQuestion].question}</p>
-              <div className="space-y-3">
+              <div className="space-y-3 pb-4">
                 {questions[currentQuestion].options.map((option, index) => (
                   <button
                     key={index}
@@ -253,11 +266,15 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
                 ))}
               </div>
               <p className="text-lg mb-4">You scored {score} out of {questions.length}</p>
-              {score > 3 && (
+              {score > 3 && !quizAlreadyCompleted ? (
                 <div className="bg-purple-100 text-purple-700 p-4 rounded-lg mb-4">
                   🎉 Congratulations! You've earned the "{pokemon.name} Master" badge!
                 </div>
-              )}
+              ) : score > 3 && quizAlreadyCompleted ? (
+                <div className="bg-gray-100 text-gray-700 p-4 rounded-lg mb-4">
+                  You've already earned the "{pokemon.name} Master" badge!
+                </div>
+              ) : null}
               <button
                 onClick={onClose}
                 className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"

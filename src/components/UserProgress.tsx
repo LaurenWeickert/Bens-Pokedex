@@ -3,6 +3,13 @@ import { Tab } from '@headlessui/react';
 import { Star, Calendar } from 'lucide-react';
 import { FaTrophy, FaFire, FaSearch, FaMedal } from 'react-icons/fa';
 import { usePokemonStore } from '../store/pokemonStore';
+import { 
+  calculateLevel, 
+  progressToNextLevel, 
+  pointsToNextLevel, 
+  LEVEL_THRESHOLDS,
+  getLevelTitle
+} from '../utils/levelSystem';
 
 interface PokemonStoreState {
   userPoints: number;
@@ -30,9 +37,11 @@ export const UserProgress: React.FC = () => {
     updateDailyStreak();
   }, [updateDailyStreak]);
 
-  // Calculate level based on points
-  const level = Math.floor(userPoints / 100) + 1;
-  const progressToNextLevel = userPoints % 100;
+  // Calculate level based on points using the new level system
+  const level = calculateLevel(userPoints);
+  const progress = progressToNextLevel(userPoints);
+  const pointsNeeded = pointsToNextLevel(userPoints);
+  const levelTitle = getLevelTitle(level);
 
   return (
     <div className={`mb-8 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -86,7 +95,7 @@ export const UserProgress: React.FC = () => {
                 </div>
               </div>
               <h2 className={`mt-2 text-xl font-extrabold ${isDark ? 'text-indigo-300' : 'text-blue-700'}`}>
-                Pokémon Trainer
+                {levelTitle}
               </h2>
               <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                 Keep exploring to level up!
@@ -151,16 +160,18 @@ export const UserProgress: React.FC = () => {
                 <span className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
                   Level {level}
                 </span>
-                <span className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                  Level {level + 1}
-                </span>
+                {level < LEVEL_THRESHOLDS.length && (
+                  <span className={`text-sm font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                    Level {level + 1}
+                  </span>
+                )}
               </div>
               <div className={`w-full h-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded-full shadow-inner overflow-hidden`}>
                 <div
                   className={`h-4 rounded-full ${
                     isDark ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gradient-to-r from-blue-500 to-purple-500'
                   } relative`}
-                  style={{ width: `${progressToNextLevel}%` }}
+                  style={{ width: `${progress}%` }}
                 >
                   {/* Add animated sparkles to the progress bar */}
                   {[...Array(5)].map((_, i) => (
@@ -177,9 +188,15 @@ export const UserProgress: React.FC = () => {
                 </div>
               </div>
               <div className="mt-1 text-center">
-                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {progressToNextLevel} / 100 points to next level
-                </span>
+                {level < LEVEL_THRESHOLDS.length ? (
+                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    {pointsNeeded} points to next level
+                  </span>
+                ) : (
+                  <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Maximum level reached!
+                  </span>
+                )}
               </div>
             </div>
 

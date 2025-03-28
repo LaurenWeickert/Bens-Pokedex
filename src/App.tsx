@@ -7,6 +7,7 @@ import { SearchBar } from './components/SearchBar';
 import { TypeFilter } from './components/TypeFilter';
 import { UserProgress } from './components/UserProgress';
 import { ThemeToggle } from './components/ThemeToggle';
+import { LevelUpAnimation } from './components/LevelUpAnimation';
 import { usePokemonStore } from './store/pokemonStore';
 import { Loader2 } from 'lucide-react';
 
@@ -211,6 +212,8 @@ function App() {
           <p>Made with ❤️ for Pokémon trainers of all ages!</p>
         </footer>
       </div>
+      {/* Level Up Animation */}
+      <LevelUpAnimation />
     </div>
   );
 }
