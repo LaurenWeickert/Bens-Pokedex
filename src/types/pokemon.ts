@@ -4,8 +4,8 @@ export interface Pokemon {
   types: PokemonType[];
   sprites: {
     front_default: string;
-    other: {
-      'official-artwork': {
+    other?: {
+      'official-artwork'?: {
         front_default: string;
       };
     };
@@ -23,6 +23,7 @@ export interface Pokemon {
       name: string;
       url: string;
     };
+    is_hidden: boolean;
   }[];
   moves: {
     move: {
@@ -33,6 +34,7 @@ export interface Pokemon {
   species: {
     url: string;
   };
+  base_experience: number;
 }
 
 export interface PokemonType {

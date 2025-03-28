@@ -27,12 +27,12 @@ declare module 'zustand/middleware' {
 }
 
 declare module 'fuse.js' {
-  interface FuseOptions<T> {
+  interface FuseOptions {
     keys?: (string | { name: string; weight: number })[];
     threshold?: number;
     ignoreLocation?: boolean;
     includeScore?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   }
   
   interface FuseResult<T> {
@@ -42,7 +42,7 @@ declare module 'fuse.js' {
   }
   
   export default class Fuse<T> {
-    constructor(list: T[], options?: FuseOptions<T>);
+    constructor(list: T[], options?: FuseOptions);
     search(pattern: string): FuseResult<T>[];
   }
 }
@@ -51,33 +51,40 @@ declare module 'framer-motion' {
   import * as React from 'react';
   
   export interface MotionProps {
-    initial?: any;
-    animate?: any;
-    whileHover?: any;
-    whileTap?: any;
-    transition?: any;
-    variants?: any;
-    [key: string]: any;
+    initial?: Record<string, unknown>;
+    animate?: Record<string, unknown>;
+    whileHover?: Record<string, unknown>;
+    whileTap?: Record<string, unknown>;
+    transition?: Record<string, unknown>;
+    variants?: Record<string, unknown>;
+    [key: string]: unknown;
   }
   
-  export type MotionComponent<P = {}> = React.ComponentType<P & MotionProps>;
+  export type MotionComponent = React.ComponentType<React.HTMLAttributes<HTMLElement> & MotionProps>;
   
   export const motion: {
-    div: MotionComponent<React.HTMLAttributes<HTMLDivElement>>;
-    button: MotionComponent<React.ButtonHTMLAttributes<HTMLButtonElement>>;
-    span: MotionComponent<React.HTMLAttributes<HTMLSpanElement>>;
-    img: MotionComponent<React.ImgHTMLAttributes<HTMLImageElement>>;
+    div: MotionComponent;
+    button: MotionComponent;
+    span: MotionComponent;
+    img: MotionComponent;
     [key: string]: MotionComponent;
   };
+  
+  export const AnimatePresence: React.FC<React.PropsWithChildren<{
+    initial?: boolean;
+    exitBeforeEnter?: boolean;
+    onExitComplete?: () => void;
+  }>>;
 }
 
 declare module 'lucide-react' {
   import * as React from 'react';
   
-  export interface IconProps extends React.SVGAttributes<SVGElement> {
+  export interface IconProps {
     size?: number | string;
     color?: string;
     stroke?: string | number;
+    className?: string;
   }
   
   export type Icon = React.FC<IconProps>;
@@ -86,11 +93,9 @@ declare module 'lucide-react' {
   export const Info: Icon;
   export const Loader2: Icon;
   export const Search: Icon;
-  export const Filter: Icon;
+  export const Sun: Icon;
+  export const Moon: Icon;
   export const Star: Icon;
   export const Trophy: Icon;
-  export const Calendar: Icon;
-  export const ChevronLeft: Icon;
-  export const ChevronRight: Icon;
   export const X: Icon;
 }

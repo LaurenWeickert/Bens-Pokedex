@@ -6,6 +6,7 @@ interface PokemonStore {
   setSearchTerm: (term: string) => void;
   selectedTypes: string[];
   toggleType: (type: string) => void;
+  setSelectedTypes: (types: string[]) => void;
   favorites: number[];
   toggleFavorite: (id: number) => void;
   // Gamification features
@@ -20,11 +21,14 @@ interface PokemonStore {
   updateDailyStreak: () => void;
   quizAnswers: Record<string, boolean>;
   setQuizAnswer: (questionId: string, correct: boolean) => void;
+  // Theme preference
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
 }
 
-export const usePokemonStore = create<PokemonStore>()(
+export const usePokemonStore = create<PokemonStore>(
   persist(
-    (set, get) => ({
+    (set) => ({
       searchTerm: '',
       setSearchTerm: (term: string) => set({ searchTerm: term }),
       selectedTypes: [],
@@ -34,6 +38,7 @@ export const usePokemonStore = create<PokemonStore>()(
             ? state.selectedTypes.filter((t) => t !== type)
             : [...state.selectedTypes, type],
         })),
+      setSelectedTypes: (types: string[]) => set({ selectedTypes: types }),
       favorites: [],
       toggleFavorite: (id: number) =>
         set((state) => ({
@@ -99,6 +104,12 @@ export const usePokemonStore = create<PokemonStore>()(
         set((state) => ({
           quizAnswers: { ...state.quizAnswers, [questionId]: correct },
           userPoints: correct ? state.userPoints + 20 : state.userPoints,
+        })),
+      // Theme preference
+      theme: 'light',
+      toggleTheme: () =>
+        set((state) => ({
+          theme: state.theme === 'light' ? 'dark' : 'light'
         })),
     }),
     {

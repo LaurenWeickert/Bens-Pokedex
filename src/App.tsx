@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from 'react-query';
 import Fuse from 'fuse.js';
 import { Pokemon, PokemonListResponse } from './types/pokemon';
@@ -6,15 +6,32 @@ import { PokemonCard } from './components/PokemonCard';
 import { SearchBar } from './components/SearchBar';
 import { TypeFilter } from './components/TypeFilter';
 import { UserProgress } from './components/UserProgress';
+import { ThemeToggle } from './components/ThemeToggle';
 import { usePokemonStore } from './store/pokemonStore';
 import { Loader2 } from 'lucide-react';
 
 const POKEMON_PER_PAGE = 20;
 const TOTAL_POKEMON = 151; // Limiting to Gen 1 for better performance
 
+// Define the PokemonStore state interface
+interface PokemonStoreState {
+  searchTerm: string;
+  selectedTypes: string[];
+  theme: 'light' | 'dark';
+}
+
 function App() {
   const [page, setPage] = useState<number>(1);
-  const { searchTerm, selectedTypes } = usePokemonStore();
+  const { searchTerm, selectedTypes, theme } = usePokemonStore() as PokemonStoreState;
+
+  // Apply theme to document
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   const fetchAllPokemon = async (): Promise<Pokemon[]> => {
     try {
@@ -109,62 +126,90 @@ function App() {
   const totalPages = Math.ceil((filteredPokemon?.length || 0) / POKEMON_PER_PAGE);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Pokédex</h1>
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-b from-gray-900 to-indigo-950' : 'bg-gradient-to-b from-blue-50 to-indigo-100'} transition-colors duration-300`}>
+      <div className="container mx-auto px-4 py-6">
+        <div className={`flex justify-between items-center mb-6 ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'} p-4 rounded-2xl shadow-lg backdrop-blur-sm`}>
+          <div className="flex items-center">
+            <img 
+              src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" 
+              alt="Pokéball" 
+              className="w-10 h-10 mr-3 animate-bounce" 
+            />
+            <h1 className={`text-4xl font-extrabold ${theme === 'dark' ? 'text-white' : 'text-blue-600'}`}>
+              <span className="text-red-500">Ben's </span>Pokédex
+            </h1>
+          </div>
+          <ThemeToggle />
+        </div>
         
         <UserProgress />
 
-        <div className="flex flex-col items-center mb-8">
+        <div className={`mb-8 ${theme === 'dark' ? 'bg-gray-800/90' : 'bg-white/90'} rounded-2xl shadow-xl p-5 backdrop-blur-sm border ${theme === 'dark' ? 'border-gray-700' : 'border-blue-200'}`}>
           <SearchBar />
           <TypeFilter />
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <div className={`flex flex-col justify-center items-center h-64 ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'} rounded-2xl shadow-lg p-8 backdrop-blur-sm`}>
+            <Loader2 className={`w-12 h-12 animate-spin ${theme === 'dark' ? 'text-blue-400' : 'text-blue-500'} mb-4`} />
+            <p className={`text-lg font-medium ${theme === 'dark' ? 'text-blue-300' : 'text-blue-600'}`}>
+              Loading Pokémon...
+            </p>
           </div>
         ) : isError ? (
-          <div className="text-center text-red-500">
-            Error loading Pokémon data: {error?.message || 'Please try again later.'}
+          <div className={`text-center p-8 ${theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'} rounded-2xl shadow-lg backdrop-blur-sm`}>
+            <div className="text-red-500 text-xl mb-3">Oops! Something went wrong</div>
+            <p className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+              Error loading Pokémon data: {error?.message || 'Please try again later.'}
+            </p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-5 auto-rows-auto">
               {paginatedPokemon?.map((p) => (
                 <PokemonCard key={p.id} pokemon={p} />
               ))}
             </div>
 
             {filteredPokemon && filteredPokemon.length > 0 ? (
-              <div className="flex justify-center mt-8 gap-4">
+              <div className="flex flex-wrap justify-center mt-8 gap-4">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+                  className={`px-5 py-3 ${theme === 'dark' ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'} text-white rounded-xl disabled:opacity-50 transition-all font-bold shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:hover:transform-none`}
                   aria-label="Previous page"
                 >
                   Previous
                 </button>
-                <span className="flex items-center px-4">
+                <span className={`flex items-center px-5 py-3 rounded-xl ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} shadow-md font-bold ${theme === 'dark' ? 'text-white' : 'text-blue-600'}`}>
                   Page {page} of {totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={page === totalPages}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg disabled:opacity-50"
+                  className={`px-5 py-3 ${theme === 'dark' ? 'bg-blue-700 hover:bg-blue-600' : 'bg-blue-500 hover:bg-blue-400'} text-white rounded-xl disabled:opacity-50 transition-all font-bold shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:hover:transform-none`}
                   aria-label="Next page"
                 >
                   Next
                 </button>
               </div>
             ) : (
-              <div className="text-center text-gray-500 mt-8">
-                No Pokémon found matching your search criteria
+              <div className={`text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mt-8 p-8 ${theme === 'dark' ? 'bg-gray-800/90' : 'bg-white/90'} rounded-2xl shadow-lg backdrop-blur-sm`}>
+                <img 
+                  src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png" 
+                  alt="Psyduck" 
+                  className="w-24 h-24 mx-auto mb-4" 
+                />
+                <p className="text-xl font-bold mb-2">No Pokémon found!</p>
+                <p>Try changing your search or filters to find some Pokémon.</p>
               </div>
             )}
           </>
         )}
+        
+        <footer className={`mt-12 text-center py-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} text-sm`}>
+          <p>Made with ❤️ for Pokémon trainers of all ages!</p>
+        </footer>
       </div>
     </div>
   );

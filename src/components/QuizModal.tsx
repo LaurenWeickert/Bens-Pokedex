@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trophy, CircleDot } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { X, Trophy } from 'lucide-react';
+import { BsCircleFill } from 'react-icons/bs';
+import { motion } from 'framer-motion';
 import { usePokemonStore } from '../store/pokemonStore';
 import ConfettiGenerator from 'confetti-js';
 import { Pokemon, PokemonSpecies, EvolutionChain } from '../types/pokemon';
@@ -8,6 +9,12 @@ import { Pokemon, PokemonSpecies, EvolutionChain } from '../types/pokemon';
 interface QuizModalProps {
   onClose: () => void;
   pokemon: Pokemon;
+}
+
+interface PokemonStoreState {
+  theme: 'light' | 'dark';
+  addPoints: (points: number) => void;
+  addBadge: (badge: string) => void;
 }
 
 const typeWeaknesses = {
@@ -32,13 +39,14 @@ const typeWeaknesses = {
 };
 
 export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
-  const { addPoints, addBadge } = usePokemonStore();
+  const { addPoints, addBadge } = usePokemonStore() as PokemonStoreState;
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [score, setScore] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [answers, setAnswers] = useState<boolean[]>([]);
   const [evolutionChain, setEvolutionChain] = useState<EvolutionChain | null>(null);
+  const [species, setSpecies] = useState<PokemonSpecies | null>(null);
 
   useEffect(() => {
     const fetchEvolutionChain = async () => {
@@ -58,14 +66,14 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
   }, [pokemon]);
 
   useEffect(() => {
-    if (showResult && score > 3) {
+    if (showResults && score > 3) {
       const confettiSettings = { target: 'confetti-canvas', max: 80 };
       const confettiInstance = new ConfettiGenerator(confettiSettings);
       confettiInstance.render();
 
       return () => confettiInstance.clear();
     }
-  }, [showResult, score]);
+  }, [showResults, score]);
 
   const getPokemonWeaknesses = () => {
     const weaknesses = new Set<string>();
@@ -160,7 +168,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
       if (currentQuestion < questions.length - 1) {
         setCurrentQuestion(prev => prev + 1);
       } else {
-        setShowResult(true);
+        setShowResults(true);
         if (score >= 3) {
           addBadge(`${pokemon.name} Master`);
         }
@@ -185,7 +193,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
         </button>
 
         <div className="p-6">
-          {!showResult ? (
+          {!showResults ? (
             <>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold">
@@ -193,7 +201,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
                 </h2>
                 <div className="flex gap-2">
                   {answers.map((correct, index) => (
-                    <CircleDot
+                    <BsCircleFill
                       key={index}
                       className={`w-6 h-6 ${
                         correct ? 'text-green-500' : 'text-red-500'
@@ -203,7 +211,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
                   {Array(questions.length - answers.length)
                     .fill(null)
                     .map((_, index) => (
-                      <CircleDot
+                      <BsCircleFill
                         key={`empty-${index}`}
                         className="w-6 h-6 text-gray-300"
                       />
@@ -236,7 +244,7 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onClose, pokemon }) => {
               <h2 className="text-2xl font-bold mb-2">Quiz Complete!</h2>
               <div className="flex justify-center gap-2 mb-4">
                 {answers.map((correct, index) => (
-                  <CircleDot
+                  <BsCircleFill
                     key={index}
                     className={`w-6 h-6 ${
                       correct ? 'text-green-500' : 'text-red-500'
