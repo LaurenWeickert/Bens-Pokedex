@@ -172,59 +172,61 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
         <div className={`p-4 ${
           isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-100 text-gray-800'
         }`}>
-          {/* Tabs */}
-          <div className="flex border-b mb-3">
-            <button 
-              className={`px-3 py-2 text-sm font-medium ${
-                activeTab === 'stats' 
-                  ? isDark 
-                    ? 'border-b-2 border-blue-400 text-blue-300' 
-                    : 'border-b-2 border-blue-500 text-blue-600'
-                  : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('stats')}
-            >
-              <div className="flex items-center">
-                <Star className="w-4 h-4 mr-1" />
-                Stats
-              </div>
-            </button>
-            <button 
-              className={`px-3 py-2 text-sm font-medium ${
-                activeTab === 'moves' 
-                  ? isDark 
-                    ? 'border-b-2 border-purple-400 text-purple-300' 
-                    : 'border-b-2 border-purple-500 text-purple-600'
-                  : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('moves')}
-            >
-              <div className="flex items-center">
-                <FaBolt className="w-4 h-4 mr-1" />
-                Moves
-              </div>
-            </button>
-            <button 
-              className={`px-3 py-2 text-sm font-medium ${
-                activeTab === 'weaknesses' 
-                  ? isDark 
-                    ? 'border-b-2 border-red-400 text-red-300' 
-                    : 'border-b-2 border-red-500 text-red-600'
-                  : isDark
-                    ? 'text-gray-400 hover:text-gray-200'
-                    : 'text-gray-500 hover:text-gray-700'
-              }`}
-              onClick={() => setActiveTab('weaknesses')}
-            >
-              <div className="flex items-center">
-                <FaShieldAlt className="w-4 h-4 mr-1" />
-                Weaknesses
-              </div>
-            </button>
+          {/* Tabs with horizontal scrolling */}
+          <div className="overflow-x-auto scrollbar-thin pb-1">
+            <div className="flex border-b mb-3 min-w-max">
+              <button 
+                className={`px-3 py-2 text-sm font-medium ${
+                  activeTab === 'stats' 
+                    ? isDark 
+                      ? 'border-b-2 border-blue-400 text-blue-300' 
+                      : 'border-b-2 border-blue-500 text-blue-600'
+                    : isDark
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('stats')}
+              >
+                <div className="flex items-center">
+                  <Star className="w-4 h-4 mr-1" />
+                  Stats
+                </div>
+              </button>
+              <button 
+                className={`px-3 py-2 text-sm font-medium ${
+                  activeTab === 'moves' 
+                    ? isDark 
+                      ? 'border-b-2 border-purple-400 text-purple-300' 
+                      : 'border-b-2 border-purple-500 text-purple-600'
+                    : isDark
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('moves')}
+              >
+                <div className="flex items-center">
+                  <FaBolt className="w-4 h-4 mr-1" />
+                  Moves
+                </div>
+              </button>
+              <button 
+                className={`px-3 py-2 text-sm font-medium ${
+                  activeTab === 'weaknesses' 
+                    ? isDark 
+                      ? 'border-b-2 border-red-400 text-red-300' 
+                      : 'border-b-2 border-red-500 text-red-600'
+                    : isDark
+                      ? 'text-gray-400 hover:text-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
+                }`}
+                onClick={() => setActiveTab('weaknesses')}
+              >
+                <div className="flex items-center">
+                  <FaShieldAlt className="w-4 h-4 mr-1" />
+                  Weaknesses
+                </div>
+              </button>
+            </div>
           </div>
 
           {/* Stats Tab Content */}
@@ -300,24 +302,26 @@ export const PokemonCard: React.FC<PokemonCardProps> = ({ pokemon }) => {
           {activeTab === 'weaknesses' && (
             <div className="mt-2">
               <h4 className="font-semibold mb-2">Type Weaknesses:</h4>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {pokemon.types.map((typeInfo) => {
-                  const weaknesses = typeWeaknesses[typeInfo.type.name as keyof typeof typeWeaknesses] || [];
-                  return weaknesses.map((weakness, index) => (
-                    <div 
-                      key={`${typeInfo.type.name}-${weakness}-${index}`} 
-                      className="flex items-center"
-                    >
-                      <span
-                        className="px-3 py-1 rounded-full text-white text-xs font-bold mr-1"
-                        style={{ backgroundColor: typeColors[weakness as keyof typeof typeColors] || '#A8A878' }}
+              <div className="overflow-x-auto scrollbar-thin pb-2">
+                <div className="flex flex-wrap gap-2 mb-4 min-w-max">
+                  {pokemon.types.map((typeInfo) => {
+                    const weaknesses = typeWeaknesses[typeInfo.type.name as keyof typeof typeWeaknesses] || [];
+                    return weaknesses.map((weakness, index) => (
+                      <div 
+                        key={`${typeInfo.type.name}-${weakness}-${index}`} 
+                        className="flex items-center"
                       >
-                        {weakness.toUpperCase()}
-                      </span>
-                      <span className="text-xs">2x</span>
-                    </div>
-                  ));
-                })}
+                        <span
+                          className="px-3 py-1 rounded-full text-white text-xs font-bold mr-1"
+                          style={{ backgroundColor: typeColors[weakness as keyof typeof typeColors] || '#A8A878' }}
+                        >
+                          {weakness.toUpperCase()}
+                        </span>
+                        <span className="text-xs">2x</span>
+                      </div>
+                    ));
+                  })}
+                </div>
               </div>
               
               <h4 className="font-semibold mb-2">Resistance Information:</h4>
